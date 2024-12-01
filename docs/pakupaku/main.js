@@ -91,7 +91,7 @@ function update() {
   }
   animTicks += difficulty;
   color('black');
-  text(`y${multiplier}`, 3, 9);
+  text(`x${multiplier}`, 3, 9);
 
 
 
