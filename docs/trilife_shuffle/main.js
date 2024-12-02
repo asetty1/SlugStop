@@ -23,6 +23,12 @@ llll
  llll
 llll
 `,
+  `
+lll
+lll
+lll
+lll
+`,
 ];
 
 options = {
@@ -33,38 +39,24 @@ options = {
   seed: 1,
 };
 
-
-
-/** @type {{x: number, y: number, vy: number}} */
 let player;
+let buses;
 let animTicks;
 let multiplier;
-let dots;
-let powerTicks;
 
 function update() {
   if (!ticks) {
-    player = {x: 80, y: 50, vy: -1};
+    player = {
+      pos: vec(50, 80),
+      vy: 1,
+      dy: 1,
+
+    };
+    buses = [];
     multiplier = 0;
-    powerTicks = animTicks = 0;
+    animTicks = 0;
   }
   animTicks += 1;
-
-
-
-  // moves slug left and right
-  if (input.isJustPressed) {
-    player.vy *= -1;
-  }
-  player.y += player.vy * 0.5 * difficulty;
-
-  if (player.y < 34) {
-    player.vy *= -1;
-  } else if (player.y > 64) {
-    player.vy *= -1;
-  }
-
-
 
   // this draws the road
   color('blue');
@@ -74,10 +66,46 @@ function update() {
   rect(43, 0, 1, 100);
 
   // this draws the slug
-  color('yellow');
   const ai = floor(animTicks / 7) % 4;
-  char(addWithCharCode('a', ai === 3 ? 1 : ai), player.y, player.x, {
+  char(addWithCharCode('a', ai === 3 ? 1 : ai), player.pos, {
+    color: 'yellow',
     // @ts-ignore
-    mirror: {x: player.vy},
+    mirror: {x: (player.dy)},
   });
+
+  // // this draws the bus
+  // const b = floor(animTicks / 7) % 4;
+  // char(addWithCharCode('d', b === 3 ? 1 : b), bus.y, bus.x, {
+  //   color: 'black',  // bus is white
+  // });
+
+
+  // moves slug left and right
+  if (input.isJustPressed) {
+    player.vy *= 0;
+  }
+  if (input.isJustReleased) {
+    player.vy = player.dy;
+  }
+
+  player.pos.x += player.vy * 0.5 * difficulty;
+
+  if (player.pos.x <= 34) {
+    player.vy *= -1;
+    player.dy *= -1;
+  } else if (player.pos.x >= 64) {
+    player.vy *= -1;
+    player.dy *= -1;
+  }
+
+
+  // moves bus up and down
+  // bus.x += bus.vx * 0.5 * difficulty;
+  // if (bus.x <= 0) {
+  //   bus.vx *= -1;
+  //   bus.y = 35
+  // } else if (bus.x >= 100) {
+  //   bus.vx *= -1;
+  //   bus.y = 65
+  // }
 }
