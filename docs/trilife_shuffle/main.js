@@ -41,6 +41,7 @@ options = {
 
 let player;
 let buses;
+const busCount = 8;
 let animTicks;
 let multiplier;
 
@@ -48,14 +49,15 @@ function update() {
   if (!ticks) {
     player = {
       pos: vec(50, 80),
-      vy: 1,
-      dy: 1,
+      vx: 1,  // y player velocity
+      dx: 1,  // y animation direction
 
     };
     buses = [];
     multiplier = 0;
     animTicks = 0;
   }
+  addbuses();
   animTicks += 1;
 
   // this draws the road
@@ -70,42 +72,62 @@ function update() {
   char(addWithCharCode('a', ai === 3 ? 1 : ai), player.pos, {
     color: 'yellow',
     // @ts-ignore
-    mirror: {x: (player.dy)},
+    mirror: {x: (player.dx)},
   });
 
-  // // this draws the bus
-  // const b = floor(animTicks / 7) % 4;
-  // char(addWithCharCode('d', b === 3 ? 1 : b), bus.y, bus.x, {
-  //   color: 'black',  // bus is white
-  // });
+  // this draws the bus
+  const b = floor(animTicks / 7) % 1;
+  char(addWithCharCode('d', b === 3 ? 1 : b), buses[b].pos, {
+    color: 'black',  // bus is white
+  });
 
 
-  // moves slug left and right
+  // turns slug left and right
   if (input.isJustPressed) {
-    player.vy *= 0;
+    player.vx *= 0;
   }
   if (input.isJustReleased) {
-    player.vy = player.dy;
+    player.vx = player.dx;
+  }
+  // makes the slug move forward
+  player.pos.x += player.vx * 0.5 * difficulty;
+
+  if (player.pos.x <= 40 && player.vx != 1) {
+    player.vx *= -1;
+    player.dx *= -1;
+  } else if (player.pos.x >= 62 && player.vx != -1) {
+    player.vx *= -1;
+    player.dx *= -1;
   }
 
-  player.pos.x += player.vy * 0.5 * difficulty;
-
-  if (player.pos.x <= 34) {
-    player.vy *= -1;
-    player.dy *= -1;
-  } else if (player.pos.x >= 64) {
-    player.vy *= -1;
-    player.dy *= -1;
-  }
 
 
   // moves bus up and down
-  // bus.x += bus.vx * 0.5 * difficulty;
-  // if (bus.x <= 0) {
-  //   bus.vx *= -1;
-  //   bus.y = 35
-  // } else if (bus.x >= 100) {
-  //   bus.vx *= -1;
-  //   bus.y = 65
-  // }
+  buses.forEach((bus) => {
+    bus.pos.y += bus.vy * 0.5 * difficulty;
+
+    if (bus.pos.y <= 0) {
+      bus.vy *= -1;
+      bus.pos.x = 35;
+    } else if (bus.pos.y >= 100) {
+      bus.vy *= -1;
+      bus.pos.x = 65;
+    }
+  })
+}
+
+function addbuses() {
+  while (buses.length < busCount) {
+    for (let i = 1; i <= 5; i++) {
+      console.log(i);
+    }
+    addbus(vec(65, 80));
+  }
+}
+
+function addbus(pos) {
+  buses.push({
+    pos: pos,
+    vy: -1,
+  });
 }
