@@ -35,7 +35,7 @@ options = {
 
 
 
-/** @type {{y: number, vy: number}} */
+/** @type {{x: number, y: number, vy: number}} */
 let player;
 let animTicks;
 let multiplier;
@@ -44,11 +44,12 @@ let powerTicks;
 
 function update() {
   if (!ticks) {
-    player = {y: 50, vy: -1};
+    player = {x: 80, y: 50, vy: -1};
     multiplier = 0;
     powerTicks = animTicks = 0;
   }
   animTicks += 1;
+
 
 
   // moves slug left and right
@@ -56,10 +57,11 @@ function update() {
     player.vy *= -1;
   }
   player.y += player.vy * 0.5 * difficulty;
-  if (player.y < 3) {
-    player.y = 103;
-  } else if (player.y > 100) {
-    player.y = -3;
+
+  if (player.y < 34) {
+    player.vy *= -1;
+  } else if (player.y > 64) {
+    player.vy *= -1;
   }
 
 
@@ -74,7 +76,7 @@ function update() {
   // this draws the slug
   color('yellow');
   const ai = floor(animTicks / 7) % 4;
-  char(addWithCharCode('a', ai === 3 ? 1 : ai), player.y, 30, {
+  char(addWithCharCode('a', ai === 3 ? 1 : ai), player.y, player.x, {
     // @ts-ignore
     mirror: {x: player.vy},
   });
