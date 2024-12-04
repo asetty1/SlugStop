@@ -100,13 +100,7 @@ function update() {
   // this draws the slug
 
   const a = floor(animTicks / 7) % 4;
-  if (player.on_bus == -1) {
-    char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
-      color: 'yellow',
-      // @ts-ignore
-      mirror: {x: (player.dx)},
-    });
-  }
+
 
   if (input.isJustPressed) {
     if (player.on_bus == -1) {
@@ -132,13 +126,19 @@ function update() {
   buses.forEach((bus, i) => {
     movebus(bus);
 
+    char('d', bus.pos, {
+      color: (
+          bus.hasPlayer == false ? 'black' :  // bus is white because crt filter
+                                   'yellow'),
+    })
+
     // picks up player
-    if (char('d', bus.pos, {
-          color:
-              (bus.hasPlayer == false ?
-                   'black' :  // bus is white because crt filter
-                   'yellow'),
-        }).isColliding.char['a']) {
+    if (player.on_bus == -1 &&
+        char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
+          color: 'yellow',
+          // @ts-ignore
+          mirror: {x: (player.dx)},
+        }).isColliding.char['d']) {
       bus.hasPlayer = true;
       bus.wait += 15;
       player.on_bus = i;
@@ -180,7 +180,7 @@ function addbus(pos) {
   });
 }
 function getoffbus() {
-  buses[player.on_bus].wait = 150;
+  buses[player.on_bus].wait = 25;
 
   player.pos.x = buses[player.on_bus].pos.x;
   player.pos.y = buses[player.on_bus].pos.y;
