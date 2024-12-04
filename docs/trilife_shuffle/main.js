@@ -50,6 +50,7 @@ let player;
 let buses;
 const busCount = 3;
 let animTicks;
+let timer;
 
 function update() {
   if (!ticks) {
@@ -62,8 +63,21 @@ function update() {
     buses = [];
     animTicks = 0;
     addbuses();
+    timer = 10;
   }
   animTicks += 1;
+
+  if (timer > 3) {
+    color('black');
+  } else {
+    color('red')
+  }
+  text(timer.toString().substring(0, 4), 10, 40);
+  timer -= .1;
+
+  if (timer <= 0) {
+    end();
+  }
 
   // this draws the road
   color('blue');
@@ -108,8 +122,6 @@ function update() {
       player.dx *= -1;
     } else {
       getoffbus();
-      player.vx = 1;
-      player.dx *= -1;
     }
   }
   // makes the slug move left and right
@@ -126,6 +138,7 @@ function update() {
   buses.forEach((bus, i) => {
     movebus(bus);
 
+    // draws bus
     char('d', bus.pos, {
       color: (
           bus.hasPlayer == false ? 'black' :  // bus is white because crt filter
@@ -134,6 +147,7 @@ function update() {
 
     // picks up player
     if (player.on_bus == -1 &&
+        // draws player
         char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
           color: 'yellow',
           // @ts-ignore
@@ -180,7 +194,7 @@ function addbus(pos) {
   });
 }
 function getoffbus() {
-  buses[player.on_bus].wait = 25;
+  buses[player.on_bus].wait = 45;
 
   player.pos.x = buses[player.on_bus].pos.x;
   player.pos.y = buses[player.on_bus].pos.y;
@@ -193,6 +207,9 @@ function getoffbus() {
   buses.forEach(bus => {
     bus.hasPlayer = false;
   });
+
+  player.vx = 1;
+  player.dx *= -1;
 }
 
 function movebus(bus) {
@@ -212,7 +229,7 @@ function movebus(bus) {
 
     } else {
       if (bus.wait <= 0) {
-        bus.pos.y += bus.vy * 0.2;  // move bus forward
+        bus.pos.y += bus.vy * 0.2 * sqrt(difficulty);  // move bus forward
       } else {
         bus.wait -= 1;
       }
