@@ -50,18 +50,16 @@ let player;
 let buses;
 const busCount = 3;
 let animTicks;
-let multiplier;
 
 function update() {
   if (!ticks) {
     player = {
-      pos: vec(50, 80),
+      pos: vec(50, 20),
       vx: 1,  // y velocity
       dx: 1,  // y direction
-      on_bus: 0,
+      on_bus: -1,
     };
     buses = [];
-    multiplier = 0;
     animTicks = 0;
     addbuses();
   }
@@ -101,9 +99,8 @@ function update() {
 
   // this draws the slug
 
-
   const a = floor(animTicks / 7) % 4;
-  if (player.on_bus == 0) {
+  if (player.on_bus == -1) {
     char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
       color: 'yellow',
       // @ts-ignore
@@ -111,15 +108,17 @@ function update() {
     });
   }
 
-
-
   if (input.isJustPressed) {
-    player.vx = 1;
-    player.dx *= -1;
-
-    addbuses();
+    if (player.on_bus == -1) {
+      player.vx = 1;
+      player.dx *= -1;
+    } else {
+      getoffbus();
+      player.vx = 1;
+      player.dx *= -1;
+    }
   }
-  // makes the slug move forward
+  // makes the slug move left and right
   player.pos.x += (player.dx * player.vx) * 0.5 * difficulty;
 
   // turns slug left and right
@@ -130,30 +129,36 @@ function update() {
   }
 
 
-
-  buses.forEach((bus) => {
-    // move bus forward
-    if (ticks % 100 >= 50) {
-      bus.pos.y += bus.vy * 0.5 * difficulty;  
-    }
+  buses.forEach((bus, i) => {
+    movebus(bus);
 
     // picks up player
     if (char('d', bus.pos, {
-          color: (
-              bus.hasPlayer == 0 ? 'black' :  // bus is white because crt filter
-                                   'yellow'),
+          color:
+              (bus.hasPlayer == false ?
+                   'black' :  // bus is white because crt filter
+                   'yellow'),
         }).isColliding.char['a']) {
-      bus.hasPlayer = 1;
-      player.on_bus = 1;
+      bus.hasPlayer = true;
+      bus.wait += 15;
+      player.on_bus = i;
     }
 
 
-    if (bus.pos.y <= 0) {  // flips bus when it reaches the end
+    if (bus.pos.y < 0) {  // flips bus when it reaches the end
       bus.vy *= -1;
       bus.pos.x = 35;
-    } else if (bus.pos.y >= 100) {
+      bus.pos.y = 1;
+      if (bus.hasPlayer) {
+        player.dx *= -1;
+      }
+    } else if (bus.pos.y > 100) {
       bus.vy *= -1;
       bus.pos.x = 65;
+      bus.pos.y = 99;
+      if (bus.hasPlayer) {
+        player.dx *= -1;
+      }
     }
   })
 }
@@ -161,7 +166,7 @@ function update() {
 function addbuses() {
   while (buses.length < busCount) {
     for (let i = buses.length; i < busCount; i++) {
-      addbus(vec(65, 80 - 16 * buses.length));
+      addbus(vec(65, 90 - 16 * buses.length));
     }
   }
 }
@@ -170,6 +175,47 @@ function addbus(pos) {
   buses.push({
     pos: pos,
     vy: -1,
-    hasPlayer: 0,
+    hasPlayer: false,
+    wait: 0,
+  });
+}
+function getoffbus() {
+  buses[player.on_bus].wait = 150;
+
+  player.pos.x = buses[player.on_bus].pos.x;
+  player.pos.y = buses[player.on_bus].pos.y;
+
+  player.pos.x += 6 * buses[player.on_bus].vy;  // gets of left side of bus
+
+  // buses[player.on_bus].hasPlayer = false;
+
+  player.on_bus = -1;
+  buses.forEach(bus => {
+    bus.hasPlayer = false;
+  });
+}
+
+function movebus(bus) {
+  buses.forEach(otherbus => {
+    if (otherbus.wait > 0 && bus != otherbus &&
+        bus.pos.x == otherbus.pos.x) {  // if 2 buses going the same direction
+
+      if (bus.vy == -1 && bus.pos.y > otherbus.pos.y &&
+          bus.pos.y < otherbus.pos.y + 10) {
+        bus.wait = 50;
+      }
+
+      if (bus.vy == 1 && bus.pos.y > otherbus.pos.y - 10 &&
+          bus.pos.y < otherbus.pos.y) {
+        bus.wait = 50;
+      }
+
+    } else {
+      if (bus.wait <= 0) {
+        bus.pos.y += bus.vy * 0.2;  // move bus forward
+      } else {
+        bus.wait -= 1;
+      }
+    }
   });
 }
