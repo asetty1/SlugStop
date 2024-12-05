@@ -1,7 +1,8 @@
-title = ' TRILIFE';
+title = ' TRILIFE SHUFFLE';
 
 description = `
-[Tap] Turn
+   Controls
+[Space] Turn
 `;
 
 characters = [
@@ -68,9 +69,11 @@ function update() {
     timer = 10;
     goal = Math.floor(Math.random() * 3) + 1;
   }
-  const a = floor(animTicks / 7) % 4;  // this animates the slug
+  const a = player.vx === 0 ? 0 : floor(animTicks / 7) % 4;
   animTicks += 1;
-  slime();
+  if (player.vx !== 0) {
+    slime();
+  }
   //===========================Background===========================
   // this draws the road
   color('blue');
@@ -126,7 +129,7 @@ function update() {
     color('red')
   }
   text(timer.toString().substring(0, 4), 10, 40);
-  timer -= .01 * difficulty;
+  timer -= .01 + (0.002 * difficulty);
 
   if (timer < 0) {
     timer = 0;
