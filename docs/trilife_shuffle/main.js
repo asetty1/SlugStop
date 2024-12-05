@@ -1,4 +1,4 @@
-title = ' TRILIFE SHUFFLE';
+title = ' TRILIFE';
 
 description = `
 [Tap] Turn
