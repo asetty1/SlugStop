@@ -67,17 +67,21 @@ function update() {
   }
   animTicks += 1;
 
+
+  // draws timer
   if (timer > 3) {
     color('black');
   } else {
     color('red')
   }
   text(timer.toString().substring(0, 4), 10, 40);
-  timer -= .1;
+  timer -= .01 * difficulty;
 
   if (timer <= 0) {
     end();
   }
+
+  addScore(1);
 
   // this draws the road
   color('blue');
@@ -86,9 +90,15 @@ function update() {
   rect(44, 0, 1, 100);
   rect(42, 0, 1, 100);
 
+
   // uc
-  color('white');
+  if (animTicks % 40 >= 40 / 2)
+    color('white');
+  else
+    color('green');
   box(vec(51, 21), 15, 9);
+
+
   color('yellow');
   box(vec(51, 21), 13, 7);
   color('cyan');
@@ -96,32 +106,39 @@ function update() {
   // arc(50, 50, 4, 2, 0, 360);
 
   // store
-  color('white');
+  if (animTicks % 40 >= 40 / 2)
+    color('white');
+  else
+    color('green');
   box(vec(51, 51), 15, 9);
+
+
   color('red');
   box(vec(51, 51), 13, 7);
   color('green');
   text('$', 50, 50);
 
   // downtown
-  color('white');
+  if (animTicks % 40 >= 40 / 2)
+    color('white');
+  else
+    color('green');
   box(vec(51, 81), 15, 9);
+
+
   color('purple');
   box(vec(51, 81), 13, 7);
   color('light_cyan');
   text('DT', 47, 80);
-
-  // this draws the slug
-
-  const a = floor(animTicks / 7) % 4;
 
 
   if (input.isJustPressed) {
     if (player.on_bus == -1) {
       player.vx = 1;
       player.dx *= -1;
-    } else {
-      getoffbus();
+    } else {  // player can only get off bus 5 pixels away from edge of screen
+      if (buses[player.on_bus].pos.y > 5 && buses[player.on_bus].pos.y < 95)
+        getoffbus();
     }
   }
   // makes the slug move left and right
@@ -146,6 +163,7 @@ function update() {
     })
 
     // picks up player
+    const a = floor(animTicks / 7) % 4;  // this draws the slug
     if (player.on_bus == -1 &&
         // draws player
         char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
