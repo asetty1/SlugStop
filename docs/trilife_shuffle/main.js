@@ -51,22 +51,74 @@ let buses;
 const busCount = 3;
 let animTicks;
 let timer;
+let goal;
 
 function update() {
   if (!ticks) {
     player = {
-      pos: vec(50, 20),
+      pos: vec(50, 35),
       vx: 1,  // y velocity
       dx: 1,  // y direction
       on_bus: -1,
+      streak: 1,
     };
     buses = [];
     animTicks = 0;
     addbuses();
     timer = 10;
+    goal = Math.floor(Math.random() * 3) + 1;
   }
+  const a = floor(animTicks / 7) % 4;  // this animates the slug
   animTicks += 1;
 
+  //===========================Background===========================
+  // this draws the road
+  color('blue');
+  rect(56, 0, 1, 100);
+  rect(58, 0, 1, 100);
+  rect(44, 0, 1, 100);
+  rect(42, 0, 1, 100);
+
+  // uc
+  if (goal == 1 && animTicks % 40 >= 40 / 2)
+    color('green');
+  else
+    color('white');
+  box(vec(51, 21), 15, 9);
+
+
+  color('yellow');
+  box(vec(51, 21), 13, 7);
+  color('cyan');
+  text('UC', 47, 20);
+  // arc(50, 50, 4, 2, 0, 360);
+
+  // store
+  if (goal == 2 && animTicks % 40 >= 40 / 2)
+    color('green');
+  else
+    color('white');
+  box(vec(51, 51), 15, 9);
+
+
+  color('red');
+  box(vec(51, 51), 13, 7);
+  color('green');
+  text('$', 50, 50);
+
+  // downtown
+  if (goal == 3 && animTicks % 40 >= 40 / 2)
+    color('green');
+  else
+    color('white');
+  box(vec(51, 81), 15, 9);
+
+  color('purple');
+  box(vec(51, 81), 13, 7);
+  color('light_cyan');
+  text('DT', 47, 80);
+
+  //===========================Timer===========================
 
   // draws timer
   if (timer > 3) {
@@ -78,60 +130,55 @@ function update() {
   timer -= .01 * difficulty;
 
   if (timer <= 0) {
+    timer = 0;
     end();
   }
-
-  addScore(1);
-
-  // this draws the road
-  color('blue');
-  rect(56, 0, 1, 100);
-  rect(58, 0, 1, 100);
-  rect(44, 0, 1, 100);
-  rect(42, 0, 1, 100);
+  text('x' + player.streak.toString(), 15, 48);
 
 
-  // uc
-  if (animTicks % 40 >= 40 / 2)
-    color('white');
-  else
-    color('green');
-  box(vec(51, 21), 15, 9);
+  //===========================Score===========================
+  if (goal == 1 && player.on_bus == -1 &&
+      char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
+        color: 'yellow',
+        // @ts-ignore
+        mirror: {x: (player.dx)},
+      }).isColliding.rect.yellow) {
+    addScore(100 * player.streak);
+    player.streak += 1;
+    timer += 2;
+    while (goal == 1) {
+      goal = Math.floor(Math.random() * 3) + 1;
+    }
+  }
+  if (goal == 2 && player.on_bus == -1 &&
+      char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
+        color: 'yellow',
+        // @ts-ignore
+        mirror: {x: (player.dx)},
+      }).isColliding.rect.red) {
+    addScore(100 * player.streak);
+    player.streak += 1;
+    timer += 2;
+    while (goal == 2) {
+      goal = Math.floor(Math.random() * 3) + 1;
+    }
+  }
+  if (goal == 3 && player.on_bus == -1 &&
+      char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
+        color: 'yellow',
+        // @ts-ignore
+        mirror: {x: (player.dx)},
+      }).isColliding.rect.purple) {
+    addScore(100 * player.streak);
+    player.streak += 1;
+    timer += 2;
+    while (goal == 3) {
+      goal = Math.floor(Math.random() * 3) + 1;
+    }
+  }
 
-
-  color('yellow');
-  box(vec(51, 21), 13, 7);
-  color('cyan');
-  text('UC', 47, 20);
-  // arc(50, 50, 4, 2, 0, 360);
-
-  // store
-  if (animTicks % 40 >= 40 / 2)
-    color('white');
-  else
-    color('green');
-  box(vec(51, 51), 15, 9);
-
-
-  color('red');
-  box(vec(51, 51), 13, 7);
-  color('green');
-  text('$', 50, 50);
-
-  // downtown
-  if (animTicks % 40 >= 40 / 2)
-    color('white');
-  else
-    color('green');
-  box(vec(51, 81), 15, 9);
-
-
-  color('purple');
-  box(vec(51, 81), 13, 7);
-  color('light_cyan');
-  text('DT', 47, 80);
-
-
+  //===========================Player===========================
+  // tap to turn
   if (input.isJustPressed) {
     if (player.on_bus == -1) {
       player.vx = 1;
@@ -151,7 +198,7 @@ function update() {
     player.vx = 0;
   }
 
-
+  //===========================Bus===========================
   buses.forEach((bus, i) => {
     movebus(bus);
 
@@ -163,7 +210,6 @@ function update() {
     })
 
     // picks up player
-    const a = floor(animTicks / 7) % 4;  // this draws the slug
     if (player.on_bus == -1 &&
         // draws player
         char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
@@ -176,15 +222,14 @@ function update() {
       player.on_bus = i;
     }
 
-
-    if (bus.pos.y < 0) {  // flips bus when it reaches the end
+    if (bus.pos.y < 0) {  // flips bus when it reaches the top
       bus.vy *= -1;
       bus.pos.x = 35;
       bus.pos.y = 1;
       if (bus.hasPlayer) {
         player.dx *= -1;
       }
-    } else if (bus.pos.y > 100) {
+    } else if (bus.pos.y > 100) {  // flips bus when it reaches the bottom
       bus.vy *= -1;
       bus.pos.x = 65;
       bus.pos.y = 99;
@@ -195,6 +240,7 @@ function update() {
   })
 }
 
+//===========================Helper Functions===========================
 function addbuses() {
   while (buses.length < busCount) {
     for (let i = buses.length; i < busCount; i++) {
@@ -247,7 +293,7 @@ function movebus(bus) {
 
     } else {
       if (bus.wait <= 0) {
-        bus.pos.y += bus.vy * 0.2 * sqrt(difficulty);  // move bus forward
+        bus.pos.y += bus.vy * 0.2 * difficulty;  // move bus forward
       } else {
         bus.wait -= 1;
       }
