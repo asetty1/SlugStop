@@ -43,7 +43,7 @@ options = {
   viewSize: {x: 100, y: 100},
   isPlayingBgm: true,
   isReplayEnabled: true,
-  seed: 1,
+  seed: 7,
 };
 
 let player;
@@ -70,7 +70,7 @@ function update() {
   }
   const a = floor(animTicks / 7) % 4;  // this animates the slug
   animTicks += 1;
-
+  slime();
   //===========================Background===========================
   // this draws the road
   color('blue');
@@ -91,7 +91,6 @@ function update() {
   box(vec(51, 21), 13, 7);
   color('cyan');
   text('UC', 47, 20);
-  // arc(50, 50, 4, 2, 0, 360);
 
   // store
   if (goal == 2 && animTicks % 40 >= 40 / 2)
@@ -129,7 +128,7 @@ function update() {
   text(timer.toString().substring(0, 4), 10, 40);
   timer -= .01 * difficulty;
 
-  if (timer <= 0) {
+  if (timer < 0) {
     timer = 0;
     end();
   }
@@ -137,43 +136,55 @@ function update() {
 
 
   //===========================Score===========================
-  if (goal == 1 && player.on_bus == -1 &&
-      char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
-        color: 'yellow',
-        // @ts-ignore
-        mirror: {x: (player.dx)},
-      }).isColliding.rect.yellow) {
-    addScore(100 * player.streak);
-    player.streak += 1;
-    timer += 2;
-    while (goal == 1) {
-      goal = Math.floor(Math.random() * 3) + 1;
-    }
-  }
-  if (goal == 2 && player.on_bus == -1 &&
-      char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
-        color: 'yellow',
-        // @ts-ignore
-        mirror: {x: (player.dx)},
-      }).isColliding.rect.red) {
-    addScore(100 * player.streak);
-    player.streak += 1;
-    timer += 2;
-    while (goal == 2) {
-      goal = Math.floor(Math.random() * 3) + 1;
-    }
-  }
-  if (goal == 3 && player.on_bus == -1 &&
-      char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
-        color: 'yellow',
-        // @ts-ignore
-        mirror: {x: (player.dx)},
-      }).isColliding.rect.purple) {
-    addScore(100 * player.streak);
-    player.streak += 1;
-    timer += 2;
-    while (goal == 3) {
-      goal = Math.floor(Math.random() * 3) + 1;
+  if (player.on_bus == -1) {
+    switch (goal) {
+      case 1:
+        if (char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
+              color: 'yellow',
+              // @ts-ignore
+              mirror: {x: (player.dx)},
+            }).isColliding.rect.yellow) {
+          addScore(100 * player.streak, player.pos.x, player.pos.y);
+          player.streak += 1;
+          timer += 2;
+          while (goal == 1) {
+            goal = Math.floor(Math.random() * 3) + 1;
+          };
+          play('coin');
+        }
+        break;
+      case 2:
+        if (char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
+              color: 'yellow',
+              // @ts-ignore
+              mirror: {x: (player.dx)},
+            }).isColliding.rect.red) {
+          addScore(100 * player.streak, player.pos.x, player.pos.y);
+          player.streak += 1;
+          timer += 2;
+          while (goal == 2) {
+            goal = Math.floor(Math.random() * 3) + 1;
+          };
+          play('coin');
+        }
+        break;
+      case 3:
+        if (char(addWithCharCode('a', a === 3 ? 1 : a), player.pos, {
+              color: 'yellow',
+              // @ts-ignore
+              mirror: {x: (player.dx)},
+            }).isColliding.rect.purple) {
+          addScore(100 * player.streak, player.pos.x, player.pos.y);
+          player.streak += 1;
+          timer += 2;
+          while (goal == 3) {
+            goal = Math.floor(Math.random() * 3) + 1;
+          };
+          play('coin');
+        }
+        break;
+      default:
+        // score sound
     }
   }
 
@@ -181,11 +192,14 @@ function update() {
   // tap to turn
   if (input.isJustPressed) {
     if (player.on_bus == -1) {
+      play('select');
       player.vx = 1;
       player.dx *= -1;
     } else {  // player can only get off bus 5 pixels away from edge of screen
-      if (buses[player.on_bus].pos.y > 5 && buses[player.on_bus].pos.y < 95)
+      if (buses[player.on_bus].pos.y > 5 && buses[player.on_bus].pos.y < 95) {
+        play('hit');
         getoffbus();
+      }
     }
   }
   // makes the slug move left and right
@@ -299,4 +313,13 @@ function movebus(bus) {
       }
     }
   });
+}
+
+function slime() {
+  if (player.on_bus == -1) {
+    color('black');
+    particle(
+        vec(player.pos.x, player.pos.y + 1), 1, .3,
+        (player.dx == -1 ? PI * 2 : PI), .1);
+  }
 }
